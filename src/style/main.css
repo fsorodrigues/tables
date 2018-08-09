@@ -9,7 +9,7 @@
 
 #map-projection {
     min-height:600px;
-    width: 100%;
+    width: 50%;
 }
 
 #map-projection-tooltip {
@@ -20,6 +20,10 @@
 }
 
 @media (max-width: 600px) {
+    #map-projection {
+        width: 100%;
+    }
+
     #map-projection-tooltip {
         pointer-events: all;
     }
