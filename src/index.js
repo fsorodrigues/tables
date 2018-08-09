@@ -13,10 +13,12 @@ import './style/main.css';
 // importing components
 import MapProjection from './components/MapProjection';
 import Tooltip from './components/Tooltip';
+import Legend from './components/Legend';
 
 // instantiating components
 const mapProjection = MapProjection(document.querySelector('#map-projection'));
 const mapTooltip = Tooltip(document.querySelector('#map-projection-tooltip'));
+const legend = Legend(document.querySelector('#map-projection'));
 
 // loading data as promises
 const mapData = d3.json('./data/vt-map.json');
@@ -24,29 +26,69 @@ const shortageData = d3.csv('./data/job_shortage_per_county.csv',parse);
 
 // calling drawing functions
 mapData.then((mapData) => {
-    mapProjection(mapData);
+    shortageData.then((shortageData) => {
+        mapProjection(mapData,shortageData);
+        legend(shortageData);
+    });
 });
 
 mapProjection.on('node:enter', function(d) {
+    d3.selectAll('.county')
+        .style('stroke', '#696969')
+        .style('stroke-width', 0.5)
+        .style('fill-opacity', 0.85)
+        .classed('active',false);
+
     d3.select(this.parentNode.appendChild(this))
-        .style('fill','#2E8B57')
+        .style('fill-opacity', 1)
         .style('stroke','#F5F5F5')
-        .style('stroke-width',1.5);
+        .style('stroke-width',1.5)
+        .classed('active',true);
 
     const [x,y] = d3.mouse(this);
 
-    mapTooltip.display(d);
+    mapTooltip.display(d)
+        .x(x)
+        .y(y)
+        .padding('12px 9px')
+        .opacity(1);
 
     shortageData.then((shortageData) => {
-        mapTooltip(shortageData,x,y);
+        mapTooltip(shortageData);
     });
 })
 .on('node:leave', function(d) {
     d3.select(this)
         .style('stroke', '#696969')
         .style('stroke-width', 0.5)
-        .style('fill', '#3CB371');
+        .style('fill-opacity', 0.85)
+        .classed('active',false);
 
-    mapTooltip.display('');
-    mapTooltip([],0,0);
+    d3.selectAll('.county')
+        .style('stroke', '#696969')
+        .style('stroke-width', 0.5)
+        .style('fill-opacity', 0.85);
+
+    mapTooltip.display('')
+        .x(0)
+        .y(0)
+        .padding('0 0')
+        .opacity(0);
+
+    mapTooltip([]);
+});
+
+mapTooltip.on('node:leave', function(d) {
+    d3.selectAll('.county')
+        .style('stroke', '#696969')
+        .style('stroke-width', 0.5)
+        .style('fill-opacity', 0.85);
+
+    mapTooltip.display('')
+        .x(0)
+        .y(0)
+        .padding('0 0')
+        .opacity(0);
+
+    mapTooltip([]);
 });

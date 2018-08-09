@@ -5,9 +5,11 @@ import * as d3 from 'd3';
 
 // importing stylesheets
 
-// setting up modules
+// importing utitily functions
+import {isMobile} from '../utils';
 
-// setting up accessory factory function
+// instantiating components & accessories
+const mobile = isMobile();
 
 // defining global variables
 
@@ -19,7 +21,7 @@ function MapProjection(_) {
 
     let _dispatch = d3.dispatch('node:enter','node:leave');
 
-    function exports(data) {
+    function exports(featuresData,data) {
         // selecting root element ==> chart container, div where function is called in index.js
         const root = _;
         const container = d3.select(root);
@@ -35,12 +37,18 @@ function MapProjection(_) {
         const mapProjection = d3.geoMercator()
             .scale(8000)
             .center([-72.6037393,43.7741865])
-            .translate([w/2,h/2]);
+            .translate([w/2.19,h/1.7]);
 
         const path = d3.geoPath()
             .projection(mapProjection);
 
+        const shortageMap = d3.map(data, d => d.county);
+
         // setting up scale
+        const scaleColor = d3.scaleLinear()
+            .domain(d3.extent(data.map(d => d.shortage.length)))
+            .interpolate(d3.interpolateHcl)
+            .range([d3.rgb('#8FBC8F'), d3.rgb('#2E8B57')]);
 
         /* HEADER */
         // appending <div> node for header
@@ -50,19 +58,18 @@ function MapProjection(_) {
         // enter, exit, update pattern
 
         // update selection
-        let svgUpdate = container.selectAll('.map-totals')
+        let svgUpdate = container.selectAll('.svg-map')
             .data([1]);
         // update selection
         const svgEnter = svgUpdate.enter()
             .append('svg')
-            .classed('map-totals', true);
+            .classed('svg-map', true);
         // exit selection
         svgUpdate.exit().remove();
         // enter + update
         svgUpdate = svgUpdate.merge(svgEnter)
             .attr('width', clientWidth)
-            .attr('height', clientHeight)
-            .style('background-color', 'gainsboro');
+            .attr('height', clientHeight);
 
         // appending <g> to SVG
         let plotUpdate = svgUpdate.selectAll('.plot')
@@ -83,7 +90,7 @@ function MapProjection(_) {
         mapUpdate = mapUpdate.merge(mapEnter);
 
         let stateNodesUpdate = mapUpdate.selectAll('.county')
-            .data(data.features);
+            .data(featuresData.features);
         const stateNodesEnter = stateNodesUpdate.enter()
             .append('path')
             .attr('id',d => `${d.properties.NAME}`.split(' ').join('-').toLowerCase())
@@ -93,38 +100,30 @@ function MapProjection(_) {
             .attr('d', path)
             .style('stroke', '#696969')
             .style('stroke-width', 0.5)
-            .style('fill', '#3CB371')
-            .on('mouseenter',function(d) {
+            .style('fill', d => scaleColor(
+                shortageMap.get(d.properties.NAME).shortage.length
+            ))
+            .style('fill-opacity', 0.85);
+
+        if (mobile) {
+            stateNodesUpdate.on('click',function(d) {
+                const isActive = d3.select(this).classed('active');
+                if (isActive) {
+                    _dispatch.call('node:leave',this,null);
+                } else {
+                    const name = d.properties.NAME;
+                    _dispatch.call('node:enter',this,name);
+                }
+            });
+        } else {
+            stateNodesUpdate.on('mouseenter',function(d) {
                 const name = d.properties.NAME;
                 _dispatch.call('node:enter',this,name);
             })
             .on('mouseleave',function(d) {
                 _dispatch.call('node:leave',this,null);
             });
-            // .on('click',function(d) {
-            //     _dispatch.call();
-            // });
-
-        // const circleTile = plot.append('g')
-        //     .classed('circle-tile',true);
-        //
-        // const circleNodes = circleTile.selectAll('.circle-node')
-        //     .data(data)
-        //     .enter()
-        //     .append('circle')
-        //     .classed('circle-node', true)
-        //     .attr('id', d => d.key)
-        //     .attr('cx', d => mapProjection([d.lon,d.lat])[0])
-        //     .attr('cy', d => mapProjection([d.lon,d.lat])[1])
-        //     .attr('r', d => scaleSize(d[_circleArea]))
-        //     .attr('fill','black')
-        //     .attr("fill-opacity", 0.6)
-        //     .on('mouseenter', function(d) {
-        //         _dispatch.call('circle:enter',this,d,tooltip);
-        //     })
-        //     .on('mouseleave', function(d) {
-        //         _dispatch.call('circle:leave',this,d,tooltip);
-        //     });
+        }
 
         /* FOOTER */
         // appending <div> node for footer
