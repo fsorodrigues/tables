@@ -66,7 +66,7 @@ function Select(_) {
         placeholderUpdate = placeholderUpdate.merge(placeholderEnter)
             .attr('data-placeholder','true')
             .attr('value', 'placeholder')
-            .text('Select to view counties affected by shortage');
+            .text('Select to view counties affected');
 
         let optionsUpdate = selectUpdate.selectAll('.option-valid')
             .data(uniques);

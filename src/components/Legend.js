@@ -117,7 +117,7 @@ function Legend(_) {
             .classed('legend-title',true);
         legendTitleUpdate.exit().remove();
         legendTitleUpdate = legendTitleUpdate.merge(legendTitleEnter)
-            .attr('transform', `translate(${0},${-5})`)
+            .attr('transform', `translate(${3*margin.l},${-margin.l})`)
             .text(d => d);
 
         /* FOOTER */
