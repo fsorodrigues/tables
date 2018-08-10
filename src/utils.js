@@ -23,3 +23,22 @@ export const isMobile = () => {
 		return false;
 	}
 };
+
+export const onlyUnique = (value, index, self) => {
+    return self.indexOf(value) === index;
+};
+
+export const createAcronym = (d) => {
+    const string = [];
+    d.forEach(e => {
+        const acronym = e.replace('-',' ')
+            .replace('(','')
+            .replace(')','')
+            .split(' ')
+            .reduce((acc, word) => acc + word.charAt(0), '');
+
+        string.push(`job-${acronym.toUpperCase()}`);
+    });
+
+    return string.join(' ');
+};

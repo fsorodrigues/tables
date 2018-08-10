@@ -6,7 +6,7 @@ import * as d3 from 'd3';
 // importing stylesheets
 
 // importing utitily functions
-import {isMobile} from '../utils';
+import {isMobile,createAcronym} from '../utils';
 
 // instantiating components & accessories
 const mobile = isMobile();
@@ -89,11 +89,13 @@ function MapProjection(_) {
         mapUpdate.exit().remove();
         mapUpdate = mapUpdate.merge(mapEnter);
 
+
         let stateNodesUpdate = mapUpdate.selectAll('.county')
             .data(featuresData.features);
         const stateNodesEnter = stateNodesUpdate.enter()
             .append('path')
             .attr('id',d => `${d.properties.NAME}`.split(' ').join('-').toLowerCase())
+            .attr('class', d => createAcronym(shortageMap.get(d.properties.NAME).shortage))
             .classed('county',true);
         stateNodesUpdate.exit().remove();
         stateNodesUpdate = stateNodesUpdate.merge(stateNodesEnter)

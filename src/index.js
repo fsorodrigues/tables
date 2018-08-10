@@ -5,7 +5,7 @@ console.log(msg);
 import * as d3 from 'd3';
 
 // importing utitily functions
-import {parse} from './utils';
+import {parse,createAcronym} from './utils';
 
 // importing stylesheets
 import './style/main.css';
@@ -14,11 +14,13 @@ import './style/main.css';
 import MapProjection from './components/MapProjection';
 import Tooltip from './components/Tooltip';
 import Legend from './components/Legend';
+import Select from './components/Select';
 
 // instantiating components
 const mapProjection = MapProjection(document.querySelector('#map-projection'));
 const mapTooltip = Tooltip(document.querySelector('#map-projection-tooltip'));
 const legend = Legend(document.querySelector('#map-projection'));
+const select = Select(document.querySelector('#map-projection-dropdown-menu'));
 
 // loading data as promises
 const mapData = d3.json('./data/vt-map.json');
@@ -29,6 +31,7 @@ mapData.then((mapData) => {
     shortageData.then((shortageData) => {
         mapProjection(mapData,shortageData);
         legend(shortageData);
+        select(shortageData);
     });
 });
 
@@ -36,7 +39,7 @@ mapProjection.on('node:enter', function(d) {
     d3.selectAll('.county')
         .style('stroke', '#696969')
         .style('stroke-width', 0.5)
-        .style('fill-opacity', 0.85)
+        .style('fill-opacity', 0.5)
         .classed('active',false);
 
     d3.select(this.parentNode.appendChild(this))
@@ -91,4 +94,36 @@ mapTooltip.on('node:leave', function(d) {
         .opacity(0);
 
     mapTooltip([]);
+});
+
+select.on('menu:selected', function(d) {
+
+    console.log(d);
+
+    if (d === 'placeholder') {
+        d3.selectAll('.county')
+            .style('stroke', '#696969')
+            .style('stroke-width', 0.5)
+            .style('fill-opacity', 0.85)
+            .classed('active',false);
+    } else {
+
+        d3.selectAll('.county')
+            .style('stroke', '#696969')
+            .style('stroke-width', 0.5)
+            .style('fill-opacity', 0.2)
+            .classed('active',false);
+
+        const these = d3.selectAll(`.${createAcronym([d])}`);
+
+        these.nodes().forEach(e => e.parentNode.appendChild(e));
+
+        these.style('stroke','#F5F5F5')
+            .style('stroke-width',1.5)
+            .style('fill-opacity', 1)
+            .classed('active',true);
+
+    }
+
+
 });
