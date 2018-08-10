@@ -42,7 +42,8 @@ function Select(_) {
         let uniques = [];
         uniques = uniques.concat
             .apply(uniques, data.map(d => d.shortage))
-            .filter(onlyUnique);
+            .filter(onlyUnique)
+            .sort();
 
         // appending buttons
         let selectUpdate = container.selectAll('.dropdown-menu')

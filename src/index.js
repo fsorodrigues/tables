@@ -97,9 +97,6 @@ mapTooltip.on('node:leave', function(d) {
 });
 
 select.on('menu:selected', function(d) {
-
-    console.log(d);
-
     if (d === 'placeholder') {
         d3.selectAll('.county')
             .style('stroke', '#696969')
