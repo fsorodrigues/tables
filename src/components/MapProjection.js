@@ -18,6 +18,7 @@ function MapProjection(_) {
 
     // create getter-setter variables in factory scope
     let _margin = {t:5, r:5, b:5, l:5};
+    let _toggleAll = true;
 
     let _dispatch = d3.dispatch('node:enter','node:leave');
 
@@ -138,6 +139,15 @@ function MapProjection(_) {
         // cb is a function ===> callback
         _dispatch.on(eventType,cb);
         return this;
+    };
+
+    exports.toggleAll = function(_) {
+        // _ is a boolean
+        _toggleAll = _;
+    };
+
+    exports.showAll = function() {
+        return _toggleAll;
     };
 
     // returning of module
