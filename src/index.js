@@ -36,11 +36,14 @@ mapData.then((mapData) => {
 });
 
 mapProjection.on('node:enter', function(d) {
-    d3.selectAll('.county')
-        .style('stroke', '#696969')
-        .style('stroke-width', 0.5)
-        .style('fill-opacity', 0.5)
-        .classed('active',false);
+    if (mapProjection.showAll()) {
+        console.log(mapProjection.showAll());
+        d3.selectAll('.county')
+            .style('stroke', '#696969')
+            .style('stroke-width', 0.5)
+            .style('fill-opacity', 0.5)
+            .classed('active',false);
+    }
 
     d3.select(this.parentNode.appendChild(this))
         .style('fill-opacity', 1)
@@ -61,16 +64,32 @@ mapProjection.on('node:enter', function(d) {
     });
 })
 .on('node:leave', function(d) {
-    d3.select(this)
-        .style('stroke', '#696969')
-        .style('stroke-width', 0.5)
-        .style('fill-opacity', 0.85)
-        .classed('active',false);
+    if (mapProjection.showAll()) {
+        d3.select(this)
+            .style('stroke', '#696969')
+            .style('stroke-width', 0.5)
+            .style('fill-opacity', 0.85)
+            .classed('active',false);
 
-    d3.selectAll('.county')
-        .style('stroke', '#696969')
-        .style('stroke-width', 0.5)
-        .style('fill-opacity', 0.85);
+        d3.selectAll('.county')
+            .style('stroke', '#696969')
+            .style('stroke-width', 0.5)
+            .style('fill-opacity', 0.85);
+
+    } else {
+        const thisEl = d3.select(this);
+        if (thisEl.classed('active-group')) {
+
+        } else {
+            const parentEl = this.parentNode;
+            d3.select(parentEl.insertBefore(this,this.parentNode.firstChild))
+                .style('stroke', '#696969')
+                .style('stroke-width', 0.5)
+                .style('fill-opacity', 0.2)
+                .classed('active-group',false);
+        }
+    }
+
 
     mapTooltip.display('')
         .x(0)
@@ -97,19 +116,22 @@ mapTooltip.on('node:leave', function(d) {
 });
 
 select.on('menu:selected', function(d) {
+
     if (d === 'placeholder') {
         d3.selectAll('.county')
             .style('stroke', '#696969')
             .style('stroke-width', 0.5)
             .style('fill-opacity', 0.85)
-            .classed('active',false);
-    } else {
+            .classed('active-group',false);
 
+        mapProjection.toggleAll(true);
+
+    } else {
         d3.selectAll('.county')
             .style('stroke', '#696969')
             .style('stroke-width', 0.5)
             .style('fill-opacity', 0.2)
-            .classed('active',false);
+            .classed('active-group',false);
 
         const these = d3.selectAll(`.${createAcronym([d])}`);
 
@@ -118,9 +140,10 @@ select.on('menu:selected', function(d) {
         these.style('stroke','#F5F5F5')
             .style('stroke-width',1.5)
             .style('fill-opacity', 1)
-            .classed('active',true);
+            .classed('active-group',true);
+
+        mapProjection.toggleAll(false);
 
     }
-
 
 });
