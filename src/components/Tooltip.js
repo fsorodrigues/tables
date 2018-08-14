@@ -4,9 +4,10 @@ import * as d3 from 'd3';
 // importing modules
 
 // importing stylesheets
+import '../style/table.css';
 
 // importing utitily functions
-import {isMobile} from '../utils';
+import {isMobile,getHeaders,formatThousands,formatPercent} from '../utils';
 
 // instantiating components & accessories
 const mobile = isMobile();
@@ -18,13 +19,12 @@ function Tooltip(_) {
 
     // create getter-setter variables in factory scope
     let _margin = {t:0, r:0, b:0, l:0};
-    let _display;
     let _x = 0;
     let _y = 0;
     let _padding = '12px 9px';
     let _opacity = 0;
 
-    let _dispatch = d3.dispatch('node:leave');
+    let _dispatch = d3.dispatch('close:clicked');
 
     function exports(data) {
         // selecting root element ==> chart container, div where function is called in index.js
@@ -38,44 +38,88 @@ function Tooltip(_) {
         const w = clientWidth - (margin.r + margin.l);
         const h = clientHeight - (margin.t + margin.b);
 
-        const filterData = data.filter(d => d.county === _display);
+        const listColumns = getHeaders(data);
 
         let countyUpdate = container.selectAll('.county-name')
-            .data(filterData);
+            .data([data]);
         const countyEnter = countyUpdate.enter()
             .append('p')
             .classed('county-name',true);
         countyUpdate.exit().remove();
         countyUpdate = countyUpdate.merge(countyEnter)
-            .html(d => `County: <b>${d.county}</b>` );
+            .html(d => `County: <b>${d.County}</b>` );
 
         let tableUpdate = container.selectAll('.table-node')
-            .data(filterData);
+            .data([data]);
         const tableEnter = tableUpdate.enter()
             .append('table')
             .classed('table-node',true);
         tableUpdate.exit().remove();
         tableUpdate = tableUpdate.merge(tableEnter);
 
-        let rowsUpdate = tableUpdate.selectAll('tr')
-            .data(d => d.shortage);
+        let tableHeaderUpdate = tableUpdate.selectAll('.table-header')
+            .data([data]);
+        const tableHeaderEnter = tableHeaderUpdate.enter()
+            .append('thead')
+            .classed('table-header',true);
+        tableHeaderUpdate.exit().remove();
+        tableHeaderUpdate = tableHeaderUpdate.merge(tableHeaderEnter);
+
+        let trHeaderUpdate = tableHeaderUpdate.selectAll('.tr-header')
+            .data([data]);
+        const trHeaderEnter = trHeaderUpdate.enter()
+            .append('tr')
+            .classed('tr-header', true);
+        trHeaderUpdate.exit().remove();
+        trHeaderUpdate = trHeaderUpdate.merge(trHeaderEnter);
+
+        let thUpdate = trHeaderUpdate.selectAll('th')
+            .data(listColumns);
+        const thEnter = thUpdate.enter()
+            .append('th');
+        thUpdate.exit().remove();
+        thUpdate = thUpdate.merge(thEnter)
+            .text(d => d);
+
+        let tableBodyUpdate = tableUpdate.selectAll('.table-body')
+            .data([data]);
+        const tableBodyEnter = tableBodyUpdate.enter()
+            .append('tbody')
+            .classed('table-body',true);
+        tableBodyUpdate.exit().remove();
+        tableBodyUpdate = tableBodyUpdate.merge(tableBodyEnter);
+
+        let rowsUpdate = tableBodyUpdate.selectAll('.rows')
+            .data(d => d.Candidates);
         const rowsEnter = rowsUpdate.enter()
             .append('tr')
             .attr('class',(d,i) => {
-                if (i % 2 == 0) return 'even';
-                else return 'odd';
-            });
+                if (i % 2 == 0) return 'rows-even';
+                else return 'rows-odd';
+            })
+            .classed('rows', true);
         rowsUpdate.exit().remove();
         rowsUpdate = rowsUpdate.merge(rowsEnter);
 
-        let listUpdate = rowsUpdate.selectAll('.list-item')
-            .data(d => [d]);
-        const listEnter = listUpdate.enter()
+        let tdUpdate = rowsUpdate.selectAll('.list-item')
+        .data(d => {
+            return listColumns.map(e => {
+                if (e === 'Candidate') {
+                    return { "value": d[e], "name": e};
+                } else if (e === 'Votes') {
+                    return { "value": formatThousands(d[e]), "name": e};
+                } else {
+                    return { "value": formatPercent(d[e]), "name": e};
+                }
+
+            });
+        });
+        const tdEnter = tdUpdate.enter()
             .append('td')
             .classed('list-item',true);
-        listUpdate.exit().remove();
-        listUpdate = listUpdate.merge(listEnter)
-            .text(d => d);
+        tdUpdate.exit().remove();
+        tdUpdate = tdUpdate.merge(tdEnter)
+            .text(d => d.value);
 
         if (mobile) {
             container.style('top',`${_y}px`)
@@ -92,7 +136,9 @@ function Tooltip(_) {
             closeUpdate.exit().remove();
             closeUpdate = closeUpdate.merge(closeEnter)
                 .on('click', function(d) {
-                    _dispatch.call('node:leave',this,null);
+                    _dispatch.call('close:clicked',this,d);
+
+
                 });
 
         } else {
@@ -109,13 +155,6 @@ function Tooltip(_) {
         // eventType is a string ===> custom eventType
         // cb is a function ===> callback
         _dispatch.on(eventType,cb);
-        return this;
-    };
-
-    exports.display = function(_) {
-        // _ expects a string
-        if (_ === 'undefined') return _display;
-        _display = _;
         return this;
     };
 

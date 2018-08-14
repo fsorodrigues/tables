@@ -1,5 +1,5 @@
-// // importing d3.js functions
-// import {} from 'd3';
+// importing d3.js functions
+import {format} from 'd3';
 
 export const parse = d => {
     return {
@@ -42,3 +42,31 @@ export const createAcronym = (d) => {
 
     return string.join(' ');
 };
+
+export const titleCase = (str) => {
+    str = str.toLowerCase().split(' ');
+
+    for (var i = 0; i < str.length; i++) {
+        str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+    }
+
+    return str.join(' ');
+};
+
+export const flatten = (arr) => {
+  return arr.reduce(function (flat, toFlatten) {
+    return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+  }, []);
+};
+
+export const getHeaders = obj => {
+    const cols = [];
+    const p = obj.Candidates[0];
+    for (let key in p) {
+        cols.push(key);
+    }
+    return cols;
+};
+
+export const formatThousands = format(',');
+export const formatPercent = format(',.2%');
